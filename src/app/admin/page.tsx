@@ -1,0 +1,1 @@
+export default function AdminPage() { return <main className="min-h-screen bg-dusk p-10 text-white"><h1 className="font-display text-6xl">Admin dashboard</h1><p className="mt-4 text-white/70">Manage products, orders, reviews, and custom requests.</p></main>; }

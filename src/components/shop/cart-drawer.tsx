@@ -171,18 +171,22 @@ export function CartDrawer() {
                   >
                     <div className="flex gap-4">
                       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[1.2rem] bg-pearl">
-                        {item.product.images?.[0]?.image_url ? (
-                          <Image
-                            src={item.product.images[0].image_url}
-                            alt={item.product.name}
-                            fill
-                            className="object-cover transition duration-500 group-hover:scale-[1.04]"
-                            sizes="96px"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-[linear-gradient(160deg,rgba(244,220,232,0.55),rgba(255,255,255,1),rgba(234,216,251,0.45))]" />
-                        )}
-                      </div>
+  {item.product.images?.[0]?.image_url ? (
+    <Image
+      src={item.product.images[0].image_url}
+      alt={
+        item.variant?.color
+          ? `${item.product.name} - ${item.variant.color}`
+          : item.product.name
+      }
+      fill
+      className="object-cover transition duration-500 group-hover:scale-[1.04]"
+      sizes="96px"
+    />
+  ) : (
+    <div className="h-full w-full bg-[linear-gradient(160deg,rgba(244,220,232,0.55),rgba(255,255,255,1),rgba(234,216,251,0.45))]" />
+  )}
+</div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">

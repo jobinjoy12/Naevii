@@ -132,9 +132,7 @@ export function ProductDetailView({
                 <button
                   key={img.id}
                   type="button"
-                  onClick={() => {
-  if (selectedVariantId) handleThumbClick(selectedVariantId, index);
-}}
+                  onClick={() => setSelectedImageIndex(index)}
                   className={`group relative overflow-hidden rounded-[1.5rem] border bg-white/80 p-2 text-left shadow-soft backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(56,38,68,0.12)] ${
                     active
                       ? 'border-plum ring-2 ring-plum/30'

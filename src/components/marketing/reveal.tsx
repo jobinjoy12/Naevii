@@ -1,6 +1,8 @@
 'use client';
 
+
 import { useEffect, useRef, useState } from 'react';
+
 
 type RevealProps = {
   children: React.ReactNode;
@@ -8,6 +10,7 @@ type RevealProps = {
   delay?: number;
   y?: number;
 };
+
 
 export function Reveal({
   children,
@@ -18,9 +21,11 @@ export function Reveal({
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
+
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
+
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -35,12 +40,15 @@ export function Reveal({
       }
     );
 
+
     observer.observe(node);
+
 
     return () => {
       observer.disconnect();
     };
   }, []);
+
 
   return (
     <div

@@ -11,6 +11,8 @@ export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
   const [added, setAdded] = useState(false);
 
+  console.log("IVDE NOKU ",product.name, product.images);
+
   const image =
     product.images?.[0]?.image_url ??
     'https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=800&q=80';

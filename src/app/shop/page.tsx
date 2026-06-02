@@ -50,10 +50,15 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const { column, ascending } = orderMap[sort] ?? orderMap.newest;
 
   let query = supabase
-    .from('products')
-    .select('*')
-    .eq('status', 'active')
-    .order(column, { ascending });
+  .from('products')
+  .select(`
+    *,
+    images:product_images(*),
+    variants:product_variants(*),
+    collection:collections(name,slug)
+  `)
+  .eq('status', 'active')
+  .order(column, { ascending });
 
   if (collection) {
     const { data: matchedCollection } = await supabase

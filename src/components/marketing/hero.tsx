@@ -69,7 +69,7 @@ export function Hero() {
               </Link>
 
               <Link
-                href="/custom"
+                href="/customs"
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-plum/15 bg-white/72 px-6 py-3 text-sm font-semibold text-dusk shadow-soft backdrop-blur transition-[transform,border-color,background-color] duration-300 active:scale-[0.985] hover:-translate-y-0.5 hover:border-plum/30 hover:bg-white sm:min-h-0 sm:w-auto sm:duration-500"
               >
                 Create a custom piece

@@ -16,7 +16,7 @@ const collections = [
       'Custom charms and meaningful details designed to hold memory, gifting, and individuality with quiet elegance.',
     accent: 'from-[#f6efe6] via-[#fff9f2] to-white',
     tag: 'Custom pieces',
-    href: '/custom',
+    href: '/customs',
   },
   {
     title: 'Softness in every detail',
@@ -208,7 +208,7 @@ export function HomeSections() {
                   Shop now
                 </Link>
                 <Link
-                  href="/custom"
+                  href="/customs"
                   className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-dusk/10 px-6 py-3 text-sm font-semibold text-dusk transition duration-300 active:scale-[0.985] sm:w-auto sm:duration-500 hover:border-plum/30 hover:text-plum"
                 >
                   Request a custom order

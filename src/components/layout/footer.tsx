@@ -1,145 +1,112 @@
-'use client';
-
 import Link from 'next/link';
-import { useState } from 'react';
-import { useCartStore } from '@/store/cart';
 
-const navItems = [
-  { href: '/shop', label: 'Shop' },
-  { href: '/customs', label: 'Custom' },
-  { href: '/meaning', label: 'Meaning' },
+const shopLinks = [
+  { href: '/shop', label: 'Shop all' },
+  { href: '/shop?collection=signature', label: 'Signature pieces' },
+  { href: '/customs', label: 'Custom jewellery' },
 ];
 
-export function Navbar() {
-  const itemCount = useCartStore((s) => s.count());
-  const [menuOpen, setMenuOpen] = useState(false);
+const aboutLinks = [
+  { href: '/meaning', label: 'The meaning of naevii' },
+  { href: '/account', label: 'My account' },
+  { href: '/checkout', label: 'Cart' },
+];
 
+const supportLinks = [
+  { href: '/contact', label: 'Contact Us' },
+  { href: '/returns', label: 'Returns' },
+  { href: '/care', label: 'Jewellery care' },
+];
+
+const legalLinks = [
+  { href: '/privacy', label: 'Privacy policy' },
+  { href: '/terms', label: 'Terms of service' },
+];
+
+export function Footer() {
   return (
-    <header className="sticky top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-white/55 bg-white/72 px-5 py-3 shadow-[0_8px_30px_rgba(44,26,58,0.08)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/60 sm:px-6">
-        <Link
-          href="/"
-          className="group relative shrink-0"
-          aria-label="naevii home"
-        >
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-[1.65rem] tracking-[-0.04em] text-dusk transition duration-500 group-hover:text-plum sm:text-[1.85rem]">
-              naevii.co
-            </span>
-            <span className="mt-1 text-[9px] uppercase tracking-[0.28em] text-dusk/38 sm:text-[10px]">
-              Pure beauty, handcrafted
-            </span>
-          </div>
-        </Link>
-
-        <div className="hidden items-center gap-8 md:flex">
-          <div className="flex items-center gap-6 text-[13px] font-medium uppercase tracking-[0.18em] text-dusk/66">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="relative transition duration-300 hover:text-plum"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/account"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-dusk/10 bg-white/70 px-4 text-sm font-medium text-dusk transition duration-300 hover:border-plum/30 hover:text-plum"
-            >
-              Account
-            </Link>
-
-            <Link
-              href="/checkout"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-dusk px-4 text-sm font-semibold text-white shadow-soft transition duration-300 hover:-translate-y-0.5 hover:bg-plum"
-            >
-              Cart
-              <span className="ml-2 inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-white/14 px-2 py-0.5 text-xs text-white">
-                {itemCount}
+    <footer className="section-shell pb-6 pt-8 sm:pb-10 sm:pt-16">
+      <div className="overflow-hidden rounded-[1.8rem] border border-dusk/8 bg-white/80 shadow-lifted backdrop-blur-xl sm:rounded-[2.4rem]">
+        <div className="flex flex-col gap-8 px-5 py-6 sm:gap-10 sm:px-8 sm:py-10 lg:grid lg:grid-cols-[1.15fr_0.85fr_0.85fr_0.85fr] lg:px-10">
+          <div className="max-w-sm">
+            <Link href="/" className="inline-block">
+              <span className="wordmark-nav font-display text-[2.6rem] tracking-[-0.05em] text-dusk sm:text-4xl lg:text-5xl">
+                naevii.co
               </span>
             </Link>
-          </div>
-        </div>
 
-        <button
-          type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-dusk/10 bg-white/70 text-dusk transition duration-300 hover:border-plum/30 hover:text-plum md:hidden"
-          onClick={() => setMenuOpen((o) => !o)}
-          aria-expanded={menuOpen}
-          aria-label="Toggle menu"
-        >
-          <div className="relative h-4 w-5">
-            <span
-              className={`absolute left-0 top-0 block h-0.5 w-5 origin-center bg-current transition duration-300 ${
-                menuOpen ? 'translate-y-[7px] rotate-45' : ''
-              }`}
-            />
-            <span
-              className={`absolute left-0 top-[7px] block h-0.5 w-5 bg-current transition duration-300 ${
-                menuOpen ? 'opacity-0' : 'opacity-100'
-              }`}
-            />
-            <span
-              className={`absolute left-0 top-[14px] block h-0.5 w-5 origin-center bg-current transition duration-300 ${
-                menuOpen ? '-translate-y-[7px] -rotate-45' : ''
-              }`}
-            />
-          </div>
-        </button>
-      </nav>
-
-      <div
-        className={`mx-auto mt-3 max-w-7xl overflow-hidden rounded-[1.75rem] border border-white/50 bg-white/88 shadow-[0_10px_30px_rgba(44,26,58,0.08)] backdrop-blur-xl transition-all duration-500 md:hidden ${
-          menuOpen
-            ? 'pointer-events-auto max-h-[420px] translate-y-0 opacity-100'
-            : 'pointer-events-none max-h-0 -translate-y-2 opacity-0'
-        }`}
-      >
-        <div className="px-5 pb-5 pt-4">
-          <div className="mb-4 border-b border-dusk/8 pb-4">
-            <p className="font-display text-2xl text-dusk">naevii.co</p>
-            <p className="mt-1 text-sm leading-6 text-dusk/55">
+            <p className="mt-4 font-display text-lg italic leading-relaxed text-plum/90 sm:text-xl">
               The essence of pure beauty, expressed through handcrafted jewellery.
             </p>
+
+            <p className="mt-4 text-sm leading-7 text-dusk/62">
+              Soft in presence, refined in finish, and made to feel deeply personal.
+              Each piece is crafted to hold beauty with quiet intention.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.2em] text-dusk/45 sm:mt-6 sm:gap-3 sm:text-xs">
+              <span className="rounded-full border border-dusk/8 bg-pearl px-3 py-2">
+                Handmade
+              </span>
+              <span className="rounded-full border border-dusk/8 bg-pearl px-3 py-2">
+                Custom
+              </span>
+              <span className="rounded-full border border-dusk/8 bg-pearl px-3 py-2">
+                Pan-India
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-2xl px-3 py-3 text-sm font-medium text-dusk transition duration-300 hover:bg-pearl hover:text-plum"
-              >
-                {item.label}
-              </Link>
-            ))}
+          <FooterColumn title="Shop" links={shopLinks} />
+          <FooterColumn title="About" links={aboutLinks} />
+          <FooterColumn title="Support" links={supportLinks} />
+        </div>
 
-            <Link
-              href="/account"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-2xl px-3 py-3 text-sm font-medium text-dusk transition duration-300 hover:bg-pearl hover:text-plum"
-            >
-              Account
-            </Link>
+        <div className="border-t border-dusk/8 px-5 py-4 sm:px-8 sm:py-5 lg:px-10">
+          <div className="flex flex-col gap-3 text-sm text-dusk/55 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <p className="text-[13px] sm:text-sm">© 2026 naevii.co. All rights reserved.</p>
 
-            <Link
-              href="/checkout"
-              onClick={() => setMenuOpen(false)}
-              className="mt-2 inline-flex items-center justify-between rounded-full bg-dusk px-4 py-3 text-sm font-semibold text-white"
-            >
-              <span>Cart</span>
-              <span className="rounded-full bg-white/14 px-2 py-1 text-xs">
-                {itemCount}
-              </span>
-            </Link>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              {legalLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="min-h-[44px] content-center text-[13px] transition duration-300 hover:text-plum sm:min-h-0 sm:text-sm"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </header>
+    </footer>
+  );
+}
+
+type FooterColumnProps = {
+  title: string;
+  links: { href: string; label: string }[];
+};
+
+function FooterColumn({ title, links }: FooterColumnProps) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-dusk/42 sm:text-xs">
+        {title}
+      </p>
+
+      <div className="mt-4 flex flex-col gap-1 sm:mt-5 sm:gap-3">
+        {links.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="min-h-[44px] content-center text-[13px] text-dusk/68 transition duration-300 hover:text-plum sm:min-h-0 sm:text-sm"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }

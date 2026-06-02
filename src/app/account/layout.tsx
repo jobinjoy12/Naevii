@@ -67,19 +67,19 @@ export default async function AccountLayout({
 
             <div className="rounded-[2rem] border border-dusk/8 bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(250,241,247,0.95),rgba(244,233,255,0.86))] p-5 shadow-soft">
               <div className="flex items-center gap-4">
-                <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(160deg,rgba(91,45,142,1),rgba(126,76,177,1))] text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-soft">
-                  {initials || 'N'}
-                </div>
+  <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(160deg,rgba(91,45,142,1),rgba(126,76,177,1))] text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-soft">
+    {initials || 'N'}
+  </div>
 
-                <div className="min-w-0">
-  <p className="font-display text-2xl leading-tight text-dusk break-words sm:text-[1.7rem]">
-    {displayName}
-  </p>
-  <p className="mt-1 break-all text-sm leading-5 text-dusk/58">
-    {email}
-  </p>
+  <div className="min-w-0 flex-1 overflow-hidden">
+    <p className="font-display text-2xl leading-tight text-dusk whitespace-normal break-words">
+      {displayName}
+    </p>
+    <p className="mt-1 text-sm leading-5 text-dusk/58 whitespace-normal break-all">
+      {email}
+    </p>
+  </div>
 </div>
-              </div>
             </div>
           </div>
         </section>

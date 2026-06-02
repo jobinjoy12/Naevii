@@ -76,10 +76,10 @@ export function ProductCard({ product }: { product: Product }) {
             </p>
 
             <Link href={`/shop/${product.slug}`} className="block">
-              <h3 className="mt-1.5 line-clamp-2 font-display text-[1.6rem] leading-[1.05] text-dusk transition duration-300 sm:mt-2 sm:text-3xl sm:leading-[1.02] sm:group-hover:text-plum">
-                {product.name}
-              </h3>
-            </Link>
+  <h3 className="mt-1.5 font-display text-[1.32rem] leading-[1.08] whitespace-normal break-words text-dusk transition duration-300 sm:mt-2 sm:text-3xl sm:leading-[1.02] sm:group-hover:text-plum">
+    {product.name}
+  </h3>
+</Link>
           </div>
 
           <div className="shrink-0 rounded-full border border-dusk/8 bg-pearl px-2.5 py-1 text-[10px] font-semibold text-dusk/60 sm:px-3 sm:py-1.5 sm:text-xs">

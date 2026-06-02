@@ -72,11 +72,13 @@ export default async function AccountLayout({
                 </div>
 
                 <div className="min-w-0">
-                  <p className="truncate font-display text-2xl text-dusk">
-                    {displayName}
-                  </p>
-                  <p className="truncate text-sm text-dusk/58">{email}</p>
-                </div>
+  <p className="font-display text-2xl leading-tight text-dusk break-words sm:text-[1.7rem]">
+    {displayName}
+  </p>
+  <p className="mt-1 break-all text-sm leading-5 text-dusk/58">
+    {email}
+  </p>
+</div>
               </div>
             </div>
           </div>

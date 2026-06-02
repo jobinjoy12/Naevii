@@ -204,9 +204,9 @@ export function CartDrawer() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold leading-6 text-dusk">
-                              {item.product.name}
-                            </p>
+                            <p className="text-sm font-semibold leading-5 text-dusk break-words line-clamp-2">
+  {item.product.name}
+</p>
                             {item.variant ? (
                               <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-dusk/42 sm:text-[11px]">
                                 {[item.variant.color, item.variant.size]

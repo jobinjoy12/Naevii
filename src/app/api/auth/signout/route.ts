@@ -1,8 +1,11 @@
 import { createServerSupabase } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const supabase = await createServerSupabase();
   await supabase.auth.signOut();
-  return NextResponse.redirect(new URL('/', process.env.NEXT_PUBLIC_SUPABASE_URL!.replace('supabase.co', 'vercel.app')));
+
+  return NextResponse.redirect(new URL('/', request.url), {
+    status: 303,
+  });
 }

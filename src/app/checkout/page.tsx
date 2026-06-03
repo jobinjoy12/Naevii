@@ -191,8 +191,12 @@ export default function CheckoutPage() {
       const createData = await createRes.json();
 
       if (!createRes.ok) {
-        throw new Error(createData.error ?? 'Failed to create order');
-      }
+  if (createRes.status === 401) {
+    throw new Error('SIGN_IN_REQUIRED');
+  }
+
+  throw new Error(createData.error ?? 'Failed to create order');
+}
 
       if (!createData.order_id || !createData.razorpay_order_id) {
         throw new Error('Invalid create-order response');
@@ -398,10 +402,27 @@ export default function CheckoutPage() {
               </div>
 
               {error ? (
-                <div className="rounded-[1.4rem] border border-[#e8c7d8] bg-[#fff7fb] px-4 py-3 text-sm text-[#8e3d62]">
-                  {error}
-                </div>
-              ) : null}
+  error === 'SIGN_IN_REQUIRED' ? (
+    <div className="rounded-[1.4rem] border border-amber-200 bg-amber-50/90 px-4 py-4">
+      <p className="text-sm font-semibold text-amber-900">Sign in to continue</p>
+      <p className="mt-1 text-sm leading-6 text-amber-900/75">
+        Please sign in before proceeding to secure payment.
+      </p>
+      <div className="mt-3">
+        <Link
+          href="/login?redirect=/checkout"
+          className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-dusk px-4 py-2 text-sm font-semibold text-white transition duration-300 hover:bg-plum"
+        >
+          Sign in
+        </Link>
+      </div>
+    </div>
+  ) : (
+    <div className="rounded-[1.4rem] border border-[#e8c7d8] bg-[#fff7fb] px-4 py-3 text-sm text-[#8e3d62]">
+      {error}
+    </div>
+  )
+) : null}
 
               <div className="flex flex-col gap-4 border-t border-dusk/8 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm leading-7 text-dusk/56">

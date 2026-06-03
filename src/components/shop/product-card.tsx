@@ -76,7 +76,7 @@ export function ProductCard({ product }: { product: Product }) {
             </p>
 
             <Link href={`/shop/${product.slug}`} className="block">
-  <h3 className="mt-1.5 font-display text-[1.32rem] leading-[1.08] whitespace-normal break-words text-dusk transition duration-300 sm:mt-2 sm:text-3xl sm:leading-[1.02] sm:group-hover:text-plum">
+  <h3 className="mt-1.5 line-clamp-2 min-h-[2.7em] font-display text-[1.2rem] leading-[1.12] text-dusk transition duration-300 sm:mt-2 sm:min-h-0 sm:text-3xl sm:leading-[1.02] sm:group-hover:text-plum">
     {product.name}
   </h3>
 </Link>
@@ -88,9 +88,9 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
 
         {product.short_description ? (
-          <p className="mt-3 line-clamp-2 text-sm leading-7 text-dusk/60 sm:mt-4">
-            {product.short_description}
-          </p>
+          <p className="mt-2 line-clamp-2 text-[15px] leading-7 text-dusk/60 sm:mt-4 sm:text-sm">
+  {product.short_description}
+</p>
         ) : (
           <p className="mt-3 text-sm leading-7 text-dusk/48 sm:mt-4">
             A handcrafted piece designed with softness, detail, and a refined

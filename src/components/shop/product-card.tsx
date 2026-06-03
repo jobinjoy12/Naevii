@@ -76,29 +76,28 @@ export function ProductCard({ product }: { product: Product }) {
             </p>
 
             <Link href={`/shop/${product.slug}`} className="block">
-  <h3 className="mt-1.5 line-clamp-2 min-h-[2.7em] font-display text-[1.2rem] leading-[1.12] text-dusk transition duration-300 sm:mt-2 sm:min-h-0 sm:text-3xl sm:leading-[1.02] sm:group-hover:text-plum">
-    {product.name}
-  </h3>
+  <h3 className="mt-1.5 font-display text-[1.34rem] leading-[1.12] text-dusk whitespace-normal break-words sm:mt-2 sm:text-3xl sm:leading-[1.02] sm:group-hover:text-plum">
+  {product.name}
+</h3>
 </Link>
           </div>
 
-          <div className="shrink-0 rounded-full border border-dusk/8 bg-pearl px-2.5 py-1 text-[10px] font-semibold text-dusk/60 sm:px-3 sm:py-1.5 sm:text-xs">
-            Ready
-          </div>
+          <div className="shrink-0 rounded-full border border-dusk/8 bg-pearl px-2 py-1 text-[9px] font-semibold text-dusk/55 sm:px-3 sm:py-1.5 sm:text-xs">
+  Ready
+</div>
         </div>
 
         {product.short_description ? (
-          <p className="mt-2 line-clamp-2 text-[15px] leading-7 text-dusk/60 sm:mt-4 sm:text-sm">
-  {product.short_description}
-</p>
-        ) : (
-          <p className="mt-3 text-sm leading-7 text-dusk/48 sm:mt-4">
-            A handcrafted piece designed with softness, detail, and a refined
-            finish.
-          </p>
-        )}
+  <p className="mt-4 hidden text-sm leading-7 text-dusk/60 sm:mt-4 sm:line-clamp-2 sm:block">
+    {product.short_description}
+  </p>
+) : (
+  <p className="mt-4 hidden text-sm leading-7 text-dusk/48 sm:mt-4 sm:block">
+    A handcrafted piece designed with softness, detail, and a refined finish.
+  </p>
+)}
 
-        <div className="mt-4 flex items-end justify-between gap-4 sm:mt-5">
+        <div className="mt-4 flex items-end justify-between gap-3 sm:mt-5 sm:gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-[0.18em] text-dusk/38 sm:text-xs">
               Price
@@ -110,7 +109,7 @@ export function ProductCard({ product }: { product: Product }) {
 
           <button
             onClick={handleAddToCart}
-            className={`inline-flex min-h-[46px] items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-semibold transition-all duration-300 sm:min-w-[148px] sm:px-5 sm:py-3 sm:text-sm ${
+            className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-all duration-300 sm:min-w-[148px] sm:px-5 sm:py-3 sm:text-sm  ${
               added
                 ? 'bg-[#edf8ef] text-[#32724b] ring-4 ring-[#d6eddc]'
                 : 'bg-dusk text-white active:scale-[0.985] sm:hover:-translate-y-0.5 sm:hover:bg-plum sm:hover:shadow-[0_14px_36px_rgba(91,45,142,0.22)]'

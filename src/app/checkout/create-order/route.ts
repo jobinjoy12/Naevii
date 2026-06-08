@@ -17,9 +17,27 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const addressResult = addressSchema.safeParse(body.shipping_address);
-    if (!addressResult.success) {
-      return NextResponse.json({ error: 'Invalid shipping address' }, { status: 422 });
-    }
+
+if (!addressResult.success) {
+  const flattened = addressResult.error.flatten();
+
+  const field_errors = Object.fromEntries(
+    Object.entries(flattened.fieldErrors).map(([key, value]) => [
+      key,
+      value?.[0] ?? 'Invalid value',
+    ])
+  );
+
+  return NextResponse.json(
+    {
+      error: 'Invalid shipping address',
+      field_errors,
+    },
+    { status: 422 }
+  );
+}
+
+    
 
     const items: { variant_id: string; quantity: number }[] = body.items ?? [];
     if (!items.length) {
@@ -30,6 +48,17 @@ export async function POST(request: NextRequest) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    if (!user) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+
+    const shippingAddress = {
+  ...addressResult.data,
+  full_name: addressResult.data.full_name ?? body.full_name ?? '',
+  phone: addressResult.data.phone ?? body.phone ?? '',
+  email: body.email ?? user?.email ?? '',
+};
 
     const variantIds = items.map((item) => item.variant_id);
 
@@ -122,7 +151,7 @@ export async function POST(request: NextRequest) {
     const { data: insertedOrder, error: orderInsertError } = await supabase
       .from('orders')
       .insert({
-        user_id: user?.id ?? null,
+        user_id: user.id,
         order_number: orderNumber,
         status: 'pending',
         payment_status: 'pending',
@@ -130,7 +159,7 @@ export async function POST(request: NextRequest) {
         shipping_inr: shippingFee,
         discount_inr: 0,
         total_inr: total,
-        shipping_address: addressResult.data,
+        shipping_address: shippingAddress,
       })
       .select('id, order_number')
       .single();
@@ -171,7 +200,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create order items' }, { status: 500 });
     }
 
-    const razorpayOrder = await createRazorpayOrder(total, insertedOrder.order_number);
+    const razorpayOrder = await createRazorpayOrder(total, insertedOrder.order_number, {
+  customerName: shippingAddress.full_name || 'Customer',
+  customerEmail: shippingAddress.email || user.email || '',
+customerPhone: shippingAddress.phone || '',
+userId: user.id,
+});
 
     const { error: orderUpdateError } = await supabase
       .from('orders')

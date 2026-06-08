@@ -1,14 +1,20 @@
 import { z } from 'zod';
 
 export const addressSchema = z.object({
-  full_name:   z.string().min(2, 'Full name required'),
-  phone:       z.string().regex(/^[6-9]\d{9}$/, 'Valid 10-digit Indian phone required'),
-  line1:       z.string().min(5, 'Address required'),
-  line2:       z.string().optional(),
-  city:        z.string().min(2, 'City required'),
-  state:       z.string().min(2, 'State required'),
-  postal_code: z.string().regex(/^\d{6}$/, 'Valid 6-digit PIN required'),
-  country:     z.string().default('IN'),
+  full_name: z.string().trim().min(2, 'Please enter your full name'),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[6-9]\d{9}$/, 'Please enter a valid 10-digit Indian phone number'),
+  line1: z.string().trim().min(5, 'Please enter your address'),
+  line2: z.string().trim().optional(),
+  city: z.string().trim().min(2, 'Please enter your city'),
+  state: z.string().trim().min(2, 'Please select your state'),
+  postal_code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Please enter a valid 6-digit PIN code'),
+  country: z.string().default('IN'),
 });
 
 

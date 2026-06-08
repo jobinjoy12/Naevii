@@ -1,5 +1,17 @@
 import type { NextConfig } from 'next';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
+const csp =
+  "default-src 'self'; " +
+  "img-src 'self' data: https://ohykyqivksptnixjsnvs.supabase.co https://images.unsplash.com https://res.cloudinary.com https://lmresources.razorpay.com https://cdn.razorpay.com; " +
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+  `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval' " : ''}https://checkout.razorpay.com https://cdn.razorpay.com; ` +
+  "font-src 'self' data: https://fonts.gstatic.com; " +
+  "connect-src 'self' https://ohykyqivksptnixjsnvs.supabase.co https://api.razorpay.com https://lumberjack.razorpay.com; " +
+  "frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com; " +
+  "frame-ancestors 'none';";
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -40,8 +52,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; img-src 'self' data: https://ohykyqivksptnixjsnvs.supabase.co https://images.unsplash.com https://res.cloudinary.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://ohykyqivksptnixjsnvs.supabase.co;",
+            value: csp.replace(/\s{2,}/g, ' ').trim(),
           },
         ],
       },

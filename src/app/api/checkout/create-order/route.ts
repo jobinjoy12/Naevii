@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { createRazorpayOrder } from '@/lib/razorpay';
 import { addressSchema } from '@/lib/validations';
+import { sendAdminOrderCreatedEmail } from '@/lib/notifications/email';
 
 function generateOrderNumber() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -16,10 +17,26 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const addressResult = addressSchema.safeParse(body.shipping_address);
-    if (!addressResult.success) {
-      return NextResponse.json({ error: 'Invalid shipping address' }, { status: 422 });
-    }
+   const addressResult = addressSchema.safeParse(body.shipping_address);
+
+if (!addressResult.success) {
+  const flattened = addressResult.error.flatten();
+
+  const field_errors = Object.fromEntries(
+    Object.entries(flattened.fieldErrors).map(([key, value]) => [
+      key,
+      value?.[0] ?? 'Invalid value',
+    ])
+  );
+
+  return NextResponse.json(
+    {
+      error: 'Invalid shipping address',
+      field_errors,
+    },
+    { status: 422 }
+  );
+}
 
     const items: { variant_id: string; quantity: number }[] = body.items ?? [];
     if (!items.length) {
@@ -28,11 +45,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createServerSupabase();
     const {
-    data: { user },
+      data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const variantIds = items.map((item) => item.variant_id);
@@ -102,92 +119,97 @@ export async function POST(request: NextRequest) {
     }
 
     const shippingFee = subtotal >= 599 ? 0 : 79;
-const total = subtotal + shippingFee;
-const orderNumber = generateOrderNumber();
+    const total = subtotal + shippingFee;
+    const orderNumber = generateOrderNumber();
 
-const razorpayOrder = await createRazorpayOrder(total, orderNumber);
+    const shippingAddress = {
+  ...addressResult.data,
+  full_name: addressResult.data.full_name ?? body.full_name ?? '',
+  phone: addressResult.data.phone ?? body.phone ?? '',
+  email: body.email ?? user?.email ?? '',
+};
 
-console.log('[auth] route user', user?.id ?? null);
-
-const { data: insertedOrder, error: orderInsertError } = await supabase
-  .from('orders')
-  .insert({
-    user_id: user.id,
-    order_number: orderNumber,
-    status: 'pending',
-    payment_status: 'pending',
-    subtotal_inr: subtotal,
-    shipping_inr: shippingFee,
-    discount_inr: 0,
-    total_inr: total,
-    shipping_address: addressResult.data,
-    razorpay_order_id: razorpayOrder.id,
-  })
-  .select('id, order_number, razorpay_order_id')
-  .single();
-
-console.log('[create-order] inserted order with razorpay id', {
-  insertedOrder,
-  orderInsertError,
-  razorpayOrderId: razorpayOrder.id,
+    const razorpayOrder = await createRazorpayOrder(total, orderNumber, {
+  customerName: shippingAddress.full_name || 'Customer',
+  customerEmail: shippingAddress.email || user.email || '',
+  customerPhone: shippingAddress.phone || '',
+  userId: user.id,
 });
 
-if (orderInsertError || !insertedOrder) {
-  return NextResponse.json(
-    { error: orderInsertError?.message ?? 'Failed to create order' },
-    { status: 500 }
-  );
-}
+    const { data: insertedOrder, error: orderInsertError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: user.id,
+        order_number: orderNumber,
+        status: 'pending',
+        payment_status: 'pending',
+        subtotal_inr: subtotal,
+        shipping_inr: shippingFee,
+        discount_inr: 0,
+        total_inr: total,
+        shipping_address: shippingAddress,
+        razorpay_order_id: razorpayOrder.id,
+      })
+      .select('id, order_number, razorpay_order_id, total_inr, shipping_address')
+      .single();
 
-const productIds = normalizedItems.map((item) => item.product_id);
+    if (orderInsertError || !insertedOrder) {
+      return NextResponse.json(
+        { error: orderInsertError?.message ?? 'Failed to create order' },
+        { status: 500 }
+      );
+    }
 
-const { data: productRows, error: productRowsError } = await supabase
-  .from('products')
-  .select('id, name')
-  .in('id', productIds);
+    const productIds = normalizedItems.map((item) => item.product_id);
 
-if (productRowsError) {
-  return NextResponse.json({ error: 'Failed to load product names' }, { status: 500 });
-}
+    const { data: productRows, error: productRowsError } = await supabase
+      .from('products')
+      .select('id, name')
+      .in('id', productIds);
 
-const productMap = Object.fromEntries((productRows ?? []).map((row) => [row.id, row.name]));
+    if (productRowsError) {
+      return NextResponse.json({ error: 'Failed to load product names' }, { status: 500 });
+    }
 
-const { error: orderItemsError } = await supabase.from('order_items').insert(
-  normalizedItems.map((item) => ({
-    order_id: insertedOrder.id,
-    product_id: item.product_id,
-    product_variant_id: item.variant_id === item.product_id ? null : item.variant_id,
-    product_name: productMap[item.product_id] ?? 'Product',
-    quantity: item.quantity,
-    price_inr: item.price_inr,
-  }))
-);
+    const productMap = Object.fromEntries((productRows ?? []).map((row) => [row.id, row.name]));
 
-if (orderItemsError) {
-  return NextResponse.json({ error: 'Failed to create order items' }, { status: 500 });
-}
+    const { error: orderItemsError } = await supabase.from('order_items').insert(
+      normalizedItems.map((item) => ({
+        order_id: insertedOrder.id,
+        product_id: item.product_id,
+        product_variant_id: item.variant_id === item.product_id ? null : item.variant_id,
+        product_name: productMap[item.product_id] ?? 'Product',
+        quantity: item.quantity,
+        price_inr: item.price_inr,
+      }))
+    );
 
-await supabase.from('order_events').insert({
-  order_id: insertedOrder.id,
-  label: 'Order created',
-  details: 'Pending order created and Razorpay order initialized.',
-});
+    if (orderItemsError) {
+      return NextResponse.json({ error: 'Failed to create order items' }, { status: 500 });
+    }
 
-console.log('[create-order] response payload', {
-  order_id: insertedOrder.id,
-  order_number: insertedOrder.order_number,
-  razorpay_order_id: razorpayOrder.id,
-  amount: razorpayOrder.amount,
-  currency: razorpayOrder.currency,
-});
+    await supabase.from('order_events').insert({
+      order_id: insertedOrder.id,
+      label: 'Order created',
+      details: 'Pending order created and Razorpay order initialized.',
+    });
 
-return NextResponse.json({
-  order_id: insertedOrder.id,
-  order_number: insertedOrder.order_number,
-  razorpay_order_id: razorpayOrder.id,
-  amount: razorpayOrder.amount,
-  currency: razorpayOrder.currency,
-});
+    try{await sendAdminOrderCreatedEmail({
+      orderNumber: insertedOrder.order_number,
+      customerName: shippingAddress.full_name || 'Customer',
+      customerEmail: shippingAddress.email || user.email || '',
+      totalInr: Number(total),
+    })}catch(emailError){
+  console.error('[checkout/create-order][admin-email]', emailError);
+};
+
+    return NextResponse.json({
+      order_id: insertedOrder.id,
+      order_number: insertedOrder.order_number,
+      razorpay_order_id: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+    });
   } catch (error) {
     console.error('[checkout/create-order]', error);
     return NextResponse.json({ error: 'Order creation failed' }, { status: 500 });

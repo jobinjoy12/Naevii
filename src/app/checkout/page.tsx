@@ -127,8 +127,11 @@ export default function CheckoutPage() {
     country: 'IN',
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+const [fieldErrors, setFieldErrors] = useState<
+  Partial<Record<keyof FormState, string>>
+>({});
 
   const subtotalAmount = subtotal();
   const shippingAmount = shipping();
@@ -138,6 +141,36 @@ export default function CheckoutPage() {
   function updateForm(key: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
+
+  function validateForm(values: FormState) {
+  const errors: Partial<Record<keyof FormState, string>> = {};
+
+  if (!values.full_name.trim()) {
+    errors.full_name = 'Please enter your full name.';
+  }
+
+  if (!/^\d{10}$/.test(values.phone.trim())) {
+    errors.phone = 'Enter a valid 10-digit phone number.';
+  }
+
+  if (!values.line1.trim() || values.line1.trim().length < 8) {
+    errors.line1 = 'Enter a complete address.';
+  }
+
+  if (!values.city.trim()) {
+    errors.city = 'Please enter your city.';
+  }
+
+  if (!/^\d{6}$/.test(values.postal_code.trim())) {
+    errors.postal_code = 'Enter a valid 6-digit PIN code.';
+  }
+
+  if (!values.state.trim()) {
+    errors.state = 'Please select your state.';
+  }
+
+  return errors;
+}
 
   async function loadRazorpayScript(): Promise<void> {
     if (window.Razorpay) return;
@@ -167,103 +200,122 @@ export default function CheckoutPage() {
   }
 
   async function handleCheckout(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!items.length || loading) return;
+  e.preventDefault();
+  if (!items.length || loading) return;
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
+  setFieldErrors({});
 
-    try {
-      const payload = {
-        shipping_address: form,
-        items: items.map((item) => ({
-          variant_id: item.variant?.id ?? item.product.id,
-          quantity: item.quantity,
-        })),
-      };
+  const validationErrors = validateForm(form);
 
-      const createRes = await fetch('/api/checkout/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+  if (Object.keys(validationErrors).length > 0) {
+    setFieldErrors(validationErrors);
+    setLoading(false);
+    return;
+  }
 
-      const createData = await createRes.json();
+  try {
+    const payload = {
+      shipping_address: form,
+      items: items.map((item) => ({
+        variant_id: item.variant?.id ?? item.product.id,
+        quantity: item.quantity,
+      })),
+    };
 
-      if (!createRes.ok) {
+    const createRes = await fetch('/api/checkout/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const createData = await createRes.json();
+
+    if (!createRes.ok) {
   if (createRes.status === 401) {
-    throw new Error('SIGN_IN_REQUIRED');
+    throw new Error('Please sign in to continue to payment.');
+  }
+
+  if (createRes.status === 422 && createData.field_errors) {
+    setFieldErrors(createData.field_errors);
+    setLoading(false);
+    return;
+  }
+
+  if (createData.error === 'Invalid shipping address') {
+    throw new Error('Please review your shipping details.');
   }
 
   throw new Error(createData.error ?? 'Failed to create order');
 }
 
-      if (!createData.order_id || !createData.razorpay_order_id) {
-        throw new Error('Invalid create-order response');
-      }
-
-      await loadRazorpayScript();
-
-      await new Promise<void>((resolve, reject) => {
-        const razorpay = new window.Razorpay({
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: createData.amount,
-          currency: createData.currency,
-          name: 'naevii.co',
-          description: 'Handcrafted Jewellery Order',
-          order_id: createData.razorpay_order_id,
-          prefill: {
-            name: form.full_name,
-            contact: form.phone,
-          },
-          theme: {
-            color: '#5b2d8e',
-          },
-          modal: {
-            ondismiss: () => reject(new Error('Payment cancelled')),
-          },
-          handler: async (response: any) => {
-            try {
-              const verifyRes = await fetch('/api/checkout/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  order_id: createData.order_id,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                }),
-              });
-
-              const verifyData = await verifyRes.json();
-
-              if (!verifyRes.ok) {
-                throw new Error(
-                  verifyData.error ?? 'Payment verification failed'
-                );
-              }
-
-              clearCart();
-              router.push(
-                `/checkout/success?order=${encodeURIComponent(
-                  createData.order_number
-                )}`
-              );
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          },
-        });
-
-        razorpay.open();
-      });
-    } catch (err: any) {
-      setError(err?.message ?? 'Something went wrong');
-    } finally {
-      setLoading(false);
+    if (!createData.order_id || !createData.razorpay_order_id) {
+      throw new Error('Invalid create-order response');
     }
+
+    await loadRazorpayScript();
+
+    await new Promise<void>((resolve, reject) => {
+      const razorpay = new window.Razorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: createData.amount,
+        currency: createData.currency,
+        name: 'naevii.co',
+        description: 'Handcrafted Jewellery Order',
+        order_id: createData.razorpay_order_id,
+        prefill: {
+          name: form.full_name,
+          contact: form.phone,
+        },
+        theme: {
+          color: '#5b2d8e',
+        },
+        modal: {
+          ondismiss: () => reject(new Error('Payment cancelled')),
+        },
+        handler: async (response: any) => {
+          try {
+            const verifyRes = await fetch('/api/checkout/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                order_id: createData.order_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+
+            if (!verifyRes.ok) {
+              throw new Error(
+                verifyData.error ?? 'Payment verification failed'
+              );
+            }
+
+            clearCart();
+            router.push(
+              `/checkout/success?order=${encodeURIComponent(
+                createData.order_number
+              )}`
+            );
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        },
+      });
+
+      razorpay.open();
+    });
+  } catch (err: any) {
+    setError(err?.message ?? 'Something went wrong');
+  } finally {
+    setLoading(false);
   }
+}
 
   if (!items.length) {
     return (
@@ -353,42 +405,70 @@ export default function CheckoutPage() {
             <form onSubmit={handleCheckout} className="space-y-8">
               <div className="grid gap-5 sm:grid-cols-2">
                 {FIELD_CONFIG.map((field) => (
-                  <label
-                    key={field.id}
-                    className={`block ${field.span ?? ''}`}
-                  >
-                    <span className="mb-2 block text-sm font-medium text-dusk/70">
-                      {field.label}
-                    </span>
-                    <input
-                      type={field.type}
-                      value={form[field.id]}
-                      onChange={(e) => updateForm(field.id, e.target.value)}
-                      placeholder={field.placeholder}
-                      required={field.required}
-                      className="w-full rounded-2xl border border-dusk/10 bg-white px-4 py-3.5 text-sm text-dusk outline-none transition duration-300 placeholder:text-dusk/30 focus:-translate-y-0.5 focus:border-plum/35 focus:ring-4 focus:ring-plum/10"
-                    />
-                  </label>
-                ))}
+  <label
+    key={field.id}
+    className={`block ${field.span ?? ''}`}
+  >
+    <span className="mb-2 block text-sm font-medium text-dusk/70">
+      {field.label}
+    </span>
+
+    <input
+      type={field.type}
+      value={form[field.id]}
+      onChange={(e) => {
+        updateForm(field.id, e.target.value);
+        setFieldErrors((prev) => ({ ...prev, [field.id]: undefined }));
+      }}
+      placeholder={field.placeholder}
+      required={field.required}
+      aria-invalid={Boolean(fieldErrors[field.id])}
+      className={`w-full rounded-2xl bg-white px-4 py-3.5 text-sm text-dusk outline-none transition duration-300 placeholder:text-dusk/30 ${
+        fieldErrors[field.id]
+          ? 'border border-red-300 bg-red-50/40 ring-4 ring-red-100'
+          : 'border border-dusk/10 focus:-translate-y-0.5 focus:border-plum/35 focus:ring-4 focus:ring-plum/10'
+      }`}
+    />
+
+    {fieldErrors[field.id] ? (
+      <p className="mt-2 text-xs text-red-600">
+        {fieldErrors[field.id]}
+      </p>
+    ) : null}
+  </label>
+))}
 
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-dusk/70">
-                    State
-                  </span>
-                  <select
-                    value={form.state}
-                    onChange={(e) => updateForm('state', e.target.value)}
-                    required
-                    className="w-full rounded-2xl border border-dusk/10 bg-white px-4 py-3.5 text-sm text-dusk outline-none transition duration-300 focus:-translate-y-0.5 focus:border-plum/35 focus:ring-4 focus:ring-plum/10"
-                  >
-                    <option value="">Select state</option>
-                    {INDIAN_STATES.map((state) => (
-                      <option key={state} value={state}>
-                        {state}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+  <span className="mb-2 block text-sm font-medium text-dusk/70">
+    State
+  </span>
+
+  <select
+    value={form.state}
+    onChange={(e) => {
+      updateForm('state', e.target.value);
+      setFieldErrors((prev) => ({ ...prev, state: undefined }));
+    }}
+    required
+    aria-invalid={Boolean(fieldErrors.state)}
+    className={`w-full rounded-2xl bg-white px-4 py-3.5 text-sm text-dusk outline-none transition duration-300 ${
+      fieldErrors.state
+        ? 'border border-red-300 bg-red-50/40 ring-4 ring-red-100'
+        : 'border border-dusk/10 focus:-translate-y-0.5 focus:border-plum/35 focus:ring-4 focus:ring-plum/10'
+    }`}
+  >
+    <option value="">Select state</option>
+    {INDIAN_STATES.map((state) => (
+      <option key={state} value={state}>
+        {state}
+      </option>
+    ))}
+  </select>
+
+  {fieldErrors.state ? (
+    <p className="mt-2 text-xs text-red-600">{fieldErrors.state}</p>
+  ) : null}
+</label>
 
                 <div className="rounded-[1.6rem] border border-dusk/8 bg-[linear-gradient(160deg,rgba(248,235,243,0.72),rgba(255,255,255,0.96),rgba(243,233,255,0.78))] p-5 shadow-soft">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">

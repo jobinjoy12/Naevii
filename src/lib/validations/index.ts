@@ -53,12 +53,22 @@ export const customOrderSchema = z.object({
     .regex(/^[0-9]{10,15}$/, { message: 'Please enter a valid phone number' }),
 
   category: z.enum(
-    ['bracelet', 'necklace', 'anklet', 'charm_piece', 'gift_set', 'other'],
+    ['bracelet', 'necklace', 'anklet','earrings', 'charm', 'gift_set', 'other'],
     {
       required_error: 'Please choose a category',
       invalid_type_error: 'Please choose a category',
     }
   ),
+
+   budget_range: z
+    .string()
+    .trim()
+    .optional(),
+
+  inspiration_urls: z
+    .string()
+    .trim()
+    .optional(),
 
   notes: z
     .string({

@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button';
 const CUSTOM_CATEGORIES = [
   { label: 'Bracelet', value: 'bracelet' },
   { label: 'Necklace', value: 'necklace' },
+  { label: 'Earrings', value: 'earrings' },
   { label: 'Anklet', value: 'anklet' },
-  { label: 'Charm piece', value: 'charm_piece' },
-  { label: 'Gift set', value: 'gift_set' },
-  { label: 'Something else', value: 'other' },
+  { label: 'Charm Piece', value: 'charm' },
+  { label: 'Gift Set', value: 'gift_set' },
+  { label: 'Other', value: 'other' },
 ] as const;
 
 type CustomOrderValues = {
@@ -21,9 +22,10 @@ type CustomOrderValues = {
   email: string;
   phone: string;
   category: string;
+  budget_range: string;
+  inspiration_urls: string;
   notes: string;
 };
-
 export default function CustomsPage() {
   const [submitted, setSubmitted] = useState(false);
 
@@ -36,12 +38,14 @@ export default function CustomsPage() {
   } = useForm<CustomOrderValues>({
     resolver: zodResolver(customOrderSchema),
     defaultValues: {
-      full_name: '',
-      email: '',
-      phone: '',
-      category: '',
-      notes: '',
-    },
+  full_name: '',
+  email: '',
+  phone: '',
+  category: '',
+  budget_range: '',
+  inspiration_urls: '',
+  notes: '',
+},
     mode: 'onTouched',
   });
 
@@ -49,11 +53,28 @@ export default function CustomsPage() {
   const noteCount = useMemo(() => (notesValue ? notesValue.length : 0), [notesValue]);
 
   async function onSubmit(values: CustomOrderValues) {
-    console.log('custom-order-request', values);
-    await new Promise((resolve) => setTimeout(resolve, 900));
+  try {
+    const response = await fetch('/api/custom-orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(values),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to submit');
+    }
+    
     setSubmitted(true);
     reset();
+  } catch (error) {
+    console.error(error);
+    alert('Failed to submit request');
   }
+}
 
   return (
     <main className="relative overflow-hidden bg-pearl">
@@ -237,6 +258,8 @@ export default function CustomsPage() {
                       ) : null}
                     </div>
 
+                    
+
                     <div>
                       <label className="mb-2 block text-base font-medium text-dusk/74 sm:text-sm">
                         Category
@@ -259,6 +282,23 @@ export default function CustomsPage() {
                         </p>
                       ) : null}
                     </div>
+
+                      <div>
+  <Input
+    label="Budget Range"
+    placeholder="₹500 - ₹1000"
+    {...register('budget_range')}
+  />
+</div>
+
+<div>
+  <Input
+    label="Inspiration URL"
+    placeholder="https://pinterest.com/..."
+    {...register('inspiration_urls')}
+  />
+</div>
+
 
                     <div>
                       <div className="mb-2 flex items-center justify-between gap-4">

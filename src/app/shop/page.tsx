@@ -286,7 +286,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-5 auto-rows-fr sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-fr">
               {productList.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
